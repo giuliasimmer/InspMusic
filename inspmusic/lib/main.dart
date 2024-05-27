@@ -1,125 +1,334 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(),
+      child: MaterialApp(
+        title: 'InspMusic',
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            background: Colors.lightBlue.shade100,
+          ),
+          scaffoldBackgroundColor: Colors.lightBlue.shade100,
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.lightBlue.shade100,
+            foregroundColor: Colors.black,
+          ),
+        ),
+        home: MyHomePage(),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
+class MyAppState extends ChangeNotifier {
+  final List<String> frases = [
+    "A música expressa o que não pode ser dito em palavras.",
+    "A música é a voz da alma.",
+    "Onde as palavras falham, a música fala.",
+    "Sem música, a vida seria um erro.",
+    "A música é uma explosão da alma.",
+    "A música é a arte mais direta.",
+    "A música pode mudar o mundo.",
+    "A música é uma forma de arte intemporal.",
+    "A música é o vinho que enche a taça do silêncio.",
+    "A música é a linguagem universal da humanidade.",
+    "A vida é como a música, deve ser composta de ouvido, sentindo cada momento.",
+    "A música é o alimento da alma.",
+    "A música é uma ponte entre o espírito e a matéria.",
+    "A música é o remédio da mente.",
+    "A música é a maneira divina de contar coisas bonitas ao coração.",
+    "A música é a poesia do ar.",
+    "A música é o tipo de arte que mais se aproxima das lágrimas e das recordações.",
+    "A música é uma revelação maior do que toda a sabedoria e filosofia.",
+    "A música é uma língua que não fala em palavras específicas.",
+    "A música é uma terapia que pode curar feridas do coração.",
+    "A música é a melodia da vida.",
+    "A música é o verbo do futuro.",
+    "A música é uma forma de vida.",
+    "A música é o caminho mais curto entre dois corações.",
+    "A música é o respiro do coração.",
+    "A música é a forma mais perfeita de arte.",
+    "A música é uma oração sem palavras.",
+    "A música é a harmonia da vida.",
+    "A música é a batida do coração da vida.",
+    "A música é a magia que todos podem ouvir."
+  ];
+
+  var current = "A música expressa o que não pode ser dito em palavras.";
+  var history = <String>[];
+
+  GlobalKey? historyListKey;
+
+  void getNext() {
+    history.insert(0, current);
+    var animatedList = historyListKey?.currentState as AnimatedListState?;
+    animatedList?.insertItem(0);
+    current = (frases..shuffle()).first;
+    notifyListeners();
+  }
+
+  var favorites = <String>[];
+
+  void toggleFavorite([String? frase]) {
+    frase = frase ?? current;
+    if (favorites.contains(frase)) {
+      favorites.remove(frase);
+    } else {
+      favorites.add(frase);
+    }
+    notifyListeners();
+  }
+
+  void removeFavorite(String frase) {
+    favorites.remove(frase);
+    notifyListeners();
+  }
+
+  // Função simples para contar o número de palavras na frase atual
+  int countWords(String frase) {
+    return frase.split(' ').length;
+  }
+}
+
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    var colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+        title: Row(
+          children: [
+            Icon(Icons.music_note, color: Colors.blue),
+            SizedBox(width: 10),
+            Text('InspMusic'),
+          ],
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: [
+            Tab(text: 'Home', icon: Icon(Icons.home)),
+            Tab(text: 'Favoritas', icon: Icon(Icons.favorite)),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          GeneratorPage(),
+          FavoritesPage(),
+        ],
+      ),
+    );
+  }
+}
+
+class GeneratorPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var frase = appState.current;
+
+    IconData icon;
+    if (appState.favorites.contains(frase)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 3,
+            child: HistoryListView(),
+          ),
+          SizedBox(height: 10),
+          BigCard(frase: frase),
+          SizedBox(height: 10),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () {
+                  appState.toggleFavorite();
+                },
+                icon: Icon(icon),
+                label: Text('Curtir'),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  appState.getNext();
+                },
+                child: Text('Próxima'),
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Text('Número de palavras: ${appState.countWords(frase)}'),
+          Spacer(flex: 2),
+        ],
+      ),
+    );
+  }
+}
+
+class BigCard extends StatelessWidget {
+  const BigCard({
+    Key? key,
+    required this.frase,
+  }) : super(key: key);
+
+  final String frase;
+
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    var style = theme.textTheme.displayMedium!.copyWith(
+      color: theme.colorScheme.onPrimary,
+    );
+
+    return Card(
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: AnimatedSize(
+          duration: Duration(milliseconds: 200),
+          child: Text(
+            frase,
+            style: style,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    var appState = context.watch<MyAppState>();
+
+    if (appState.favorites.isEmpty) {
+      return Center(
+        child: Text('Nenhum favorito ainda.'),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(30),
+          child: Text('Você tem '
+              '${appState.favorites.length} favoritos:'),
+        ),
+        Expanded(
+          child: GridView(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 400,
+              childAspectRatio: 400 / 80,
+            ),
+            children: [
+              for (var frase in appState.favorites)
+                ListTile(
+                  leading: IconButton(
+                    icon: Icon(Icons.delete_outline, semanticLabel: 'Deletar'),
+                    color: theme.colorScheme.primary,
+                    onPressed: () {
+                      appState.removeFavorite(frase);
+                    },
+                  ),
+                  title: Text(
+                    frase,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HistoryListView extends StatefulWidget {
+  const HistoryListView({Key? key}) : super(key: key);
+
+  @override
+  State<HistoryListView> createState() => _HistoryListViewState();
+}
+
+class _HistoryListViewState extends State<HistoryListView> {
+  final _key = GlobalKey<AnimatedListState>();
+
+  static const Gradient _maskingGradient = LinearGradient(
+    colors: [Colors.transparent, Colors.black],
+    stops: [0.0, 0.5],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
+    appState.historyListKey = _key;
+
+    return ShaderMask(
+      shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
+      blendMode: BlendMode.dstIn,
+      child: AnimatedList(
+        key: _key,
+        reverse: true,
+        padding: EdgeInsets.all(10),
+        initialItemCount: appState.history.length,
+        itemBuilder: (context, index, animation) {
+          final frase = appState.history[index];
+          return SizeTransition(
+            sizeFactor: animation,
+            child: Card(
+              child: ListTile(
+                title: Text(frase),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
